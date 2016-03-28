@@ -12,11 +12,9 @@ jsdom.env({
     document = window.document
     
     fs.readdir(__dirname, function (err, d) {
-      
       d.filter(function (f) {
         return /.*\.test\.js/.test(f)
-      })
-      .forEach(function (f) {
+      }).forEach(function (f) {
         require(path.join(__dirname, f))(window, d3)
       })
     }) 
