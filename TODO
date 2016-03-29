@@ -2,3 +2,4 @@
   - use node.js and edges.js to modularize it
   - test these
 - phantom for visual tests?
+- copy over from main.js
