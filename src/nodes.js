@@ -12,6 +12,6 @@ function draw(data) {
   return data
     .append('circle')
     .attr('class', 'node')
-    .attr('data-legend',function(d) { return d.type})
-    .attr('r', 5)
+    .attr('r', 10)
+    .style('fill', 'red')
 }

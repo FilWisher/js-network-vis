@@ -11,6 +11,6 @@ function draw (data) {
 
   return data
     .append('line')
-    .attr('class', 'link')
-    .style('stroke-width', function(d) { return Math.sqrt(d.target) })
+    .attr('class', 'edge')
+    .style('stroke-width', '2px')
 }
