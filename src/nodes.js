@@ -12,6 +12,8 @@ function draw(data) {
   return data
     .append('circle')
     .attr('class', 'node')
-    .attr('r', 10)
+    .attr('r', function (d) {
+      return (4*Object.keys(d.requests).length)+3
+    })
     .style('fill', 'red')
 }

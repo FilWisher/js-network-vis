@@ -1,47 +1,90 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+var animate = require('../src/animate.js')
 var network = require('../src/network.js')
 var topology = require('../fixtures/topology.json')
 var d3 = require('d3')
+  
+topology.nodes.forEach(function (node) {
+  node.cache = []
+  node.requests = {}
+  node.cacheSize = (Math.random() * 10) + 5
+})
+ 
 
 var width = 900
 var height = 500
-
-var force = d3.layout.force()
-    .charge(-200)
-    .linkDistance(100)
-    .size([width, height]);
-
-force
-  .nodes(topology.nodes)
-  .links(topology.edges)
-  .start()
 
 var canvas = d3.select('body').append('svg')
   .attr('width', width)
   .attr('height', height)
 
-var nw = network.draw(topology.nodes, topology.edges)(canvas) 
-nw.edges.call(force.drag)
-nw.nodes.call(force.drag)
 
-force.on('tick', function() {
-  nw.edges.attr('x1', function(d) { return d.source.x })
-      .attr('y1', function(d) { return d.source.y })
-      .attr('x2', function(d) { return d.target.x })
-      .attr('y2', function(d) { return d.target.y })
-  nw.edges.attr('x1', function(d) { return d.source.x })
-      .attr('y1', function(d) { return d.source.y })
-      .attr('x2', function(d) { return d.target.x })
-      .attr('y2', function(d) { return d.target.y })
 
-  nw.nodes.attr('cx', function(d) { return d.x })
-      .attr('cy', function(d) { return d.y })
+var events = [
+  {
+    type: 'request'
+  , node: '32'
+  , data_ID: 'aoeu'
+  }, 
+  {
+    type: 'request'
+  , node: '1006'
+  , data_ID: 'aoeu1'
+  }, 
+  {
+    type: 'request'
+  , node: '12'
+  , data_ID: 'aoeu2'
+  }, 
+  {
+    type: 'request'
+  , node: '1001'
+  , data_ID: 'aoeu3'
+  }, 
+  {
+    type: 'request'
+  , node: '1032'
+  , data_ID: 'aoeu4'
+  }
+]
 
-})
+function redraw() {
+  var force = d3.layout.force()
+      .charge(-200)
+      .linkDistance(100)
+      .size([width, height]);
 
-console.log(topology)
+  force
+    .nodes(topology.nodes)
+    .links(topology.edges)
+    .start()
 
-},{"../fixtures/topology.json":2,"../src/network.js":5,"d3":3}],2:[function(require,module,exports){
+  console.log(topology.nodes.filter(function (node) {
+    return Object.keys(node.requests).length > 0
+  }))
+  console.log('redrawing ,,,.')
+  var nw = network.draw(topology.nodes, topology.edges)(canvas) 
+  nw.edges.call(force.drag)
+  nw.nodes.call(force.drag)
+  force.on('tick', function() {
+    nw.edges.attr('x1', function(d) { return d.source.x })
+        .attr('y1', function(d) { return d.source.y })
+        .attr('x2', function(d) { return d.target.x })
+        .attr('y2', function(d) { return d.target.y })
+    nw.edges.attr('x1', function(d) { return d.source.x })
+        .attr('y1', function(d) { return d.source.y })
+        .attr('x2', function(d) { return d.target.x })
+        .attr('y2', function(d) { return d.target.y })
+
+    nw.nodes.attr('cx', function(d) { return d.x })
+        .attr('cy', function(d) { return d.y })
+
+  })
+}
+
+animate(topology, events, 100, redraw)
+
+},{"../fixtures/topology.json":2,"../src/animate.js":4,"../src/network.js":6,"d3":3}],2:[function(require,module,exports){
 module.exports={
   "edges": [
     {
@@ -10239,6 +10282,104 @@ module.exports={
   if (typeof define === "function" && define.amd) this.d3 = d3, define(d3); else if (typeof module === "object" && module.exports) module.exports = d3; else this.d3 = d3;
 }();
 },{}],4:[function(require,module,exports){
+// create request
+
+var requests = {}
+
+module.exports = function (network, events, dt, redraw) {
+/*
+  setInterval(function () {
+    update_cache_size(network)
+  }, dt)
+       
+  console.log('network:', network)
+*/
+  return anim(network, events, dt, redraw)
+}
+
+function update_cache_size(network, dt) {
+  network.nodes
+    .transition(dt)
+    .attr('r', function (d) {
+      return (Math.random()*10)+5
+    })
+}
+
+/*
+event = {
+  type: 'request'
+, from: '<number>'
+, to: '<number>'
+}
+*/
+
+function anim(network, evs, dt, redraw) {
+
+  setInterval(function () {
+    ev = evs.pop()
+    if (!ev) return
+    update(network, ev)
+   
+    redraw()
+      
+  }, 1000)
+}
+
+function request_coords(nodes) {
+  var reqs = Object.keys(requests).map(function (k) {
+    return requests[k].loc
+  })
+  return nodes.filter(function (node) {
+    return reqs.indexOf(node.name) > -1
+  }).map(function (node) {
+    console.log(node)
+    return {
+      x: node[0].cx.baseVal.valueAsString
+    , y: node[0].cy.baseVal.valueAsString
+    }
+  })
+}
+
+function update(network, ev) {
+  switch (ev.type) {
+  case 'request':
+    request(network.nodes, ev)
+    break
+  case 'request_hop':
+    request_hop(network.nodes, ev)
+    break
+  }
+}
+
+function get_node(id, nodes) {
+  return nodes.filter(function (node) {
+    return node.name === ev.node
+  })[0]
+}
+
+function request(nodes, ev) {
+  var n = get_node(ev.node, nodes)
+  if (!n) return
+  console.log('n', n)
+  var r = {
+    id: ev.data_ID
+  , loc: ev.node
+  }
+  n.requests[ev.data_ID] = r
+}
+
+function request_hop(nodes, ev) {
+  var src = get_node(ev.from_node, nodes)
+  if (!src) return
+  delete src.requests[ev.data_ID]
+  var dst = get_node(ev.to_node, nodes)
+  dst.requests[ev.data_ID] = {
+    id: ev.data_ID
+  , loc: ev.to_node
+  }
+}
+
+},{}],5:[function(require,module,exports){
 module.exports = {
   draw: draw
 }
@@ -10256,7 +10397,7 @@ function draw (data) {
     .style('stroke-width', '2px')
 }
 
-},{}],5:[function(require,module,exports){
+},{}],6:[function(require,module,exports){
 var nodes = require('./nodes.js')
 var edges = require('./edges.js')
 
@@ -10288,7 +10429,7 @@ module.exports = {
   draw: draw
 }
 
-},{"./edges.js":4,"./nodes.js":6}],6:[function(require,module,exports){
+},{"./edges.js":5,"./nodes.js":7}],7:[function(require,module,exports){
 module.exports = {
   draw: draw
 }
@@ -10303,7 +10444,9 @@ function draw(data) {
   return data
     .append('circle')
     .attr('class', 'node')
-    .attr('r', 10)
+    .attr('r', function (d) {
+      return (4*Object.keys(d.requests).length)+3
+    })
     .style('fill', 'red')
 }
 
