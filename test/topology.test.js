@@ -22,9 +22,14 @@ test('topology#update -> request', (t) => {
   , node: data.nodes[0].name 
   })
   
-  t.equals(Object.keys(network.requests).length, 1, 'request event adds request')
+  var node = network.nodes.filter(n => n.name == data.nodes[0].name)[0]
   
-  var r = network.requests[id]
+  t.ok(node, 'node exists')
+  t.equals(Object.keys(node.requests).length, 1, 
+      'request event adds to node.requests')
+  
+  var r = node.requests.filter(r => r.id == id)[0]
+  t.ok(r, 'request has correct id')
   t.equals(r.loc, data.nodes[0].name, 'request location instantiated')
   t.equals(r.id, id, 'request id instantiated')
    
@@ -47,9 +52,18 @@ test('topology#update -> request_hop', (t) => {
   , from_node: data.nodes[0].name 
   })
   
-  var r = network.requests[id]
-  t.equals(Object.keys(network.requests).length, 1, 'requests length unchanged')
-  t.equals(r.loc, data.nodes[1].name, 'request location updated')
+  var src = network.nodes.filter(n => n.name == data.nodes[0].name)[0]
+  var dst = network.nodes.filter(n => n.name == data.nodes[1].name)[0]
+  t.ok(src, 'src exists')
+  t.equals(src.requests.length, 0, 'src has no requests') 
+  
+  t.ok(dst, 'dst exists')
+  t.equals(dst.requests.length, 1, 'dst has one request')
+ 
+  var r = dst.requests.filter(r => r.id == id)[0] 
+  t.ok(r, 'request exists with correct id')
+  
+  t.equals(r.loc, dst.name, 'request has correct loc')
   
   t.end()
 })

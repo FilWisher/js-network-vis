@@ -1,15 +1,33 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 var animate = require('../src/animate.js')
 var network = require('../src/network.js')
-var topology = require('../fixtures/topology.json')
+var data = require('../fixtures/topology.json')
+var topology = require('../src/topology.js')
 var d3 = require('d3')
-  
-topology.nodes.forEach(function (node) {
-  node.cache = []
-  node.requests = {}
-  node.cacheSize = (Math.random() * 10) + 5
+
+function node_color(node) {
+  if (node.requests.length > 0) {
+    console.log(node)
+    return 'blue'
+  } else {
+    return 'red'
+  }
+}
+
+function node_size(node) {
+  if (node.requests.length > 0)
+    return '10'
+  else
+    return '5'
+}
+
+var net = topology(data.nodes, data.edges)
+var id = Math.floor(Math.random()*100)
+net.update({
+  type: 'request'
+, data_ID: id
+, node: net.nodes[0].name 
 })
- 
 
 var width = 900
 var height = 500
@@ -18,73 +36,47 @@ var canvas = d3.select('body').append('svg')
   .attr('width', width)
   .attr('height', height)
 
+var force = d3.layout.force()
+    .charge(-200)
+    .linkDistance(100)
+    .size([width, height])
+    
+var nodes = canvas.selectAll('.node')
+  .data(net.nodes)
+  .enter()
+  .append('circle')
+  .attr('class', 'node')
+  .attr('id', function (d) { return 'i' + d.name })
+  .attr('r', '5')
+  .style('fill', node_color)
+  .call(force.drag)
 
+var edges = canvas.selectAll('.edge')
+  .data(net.edges)
+  .enter()
+  .append('line')
+  .attr('class', 'edge')
+  .style('stroke-width', '2px')
+  .call(force.drag)
 
-var events = [
-  {
-    type: 'request'
-  , node: '32'
-  , data_ID: 'aoeu'
-  }, 
-  {
-    type: 'request'
-  , node: '1006'
-  , data_ID: 'aoeu1'
-  }, 
-  {
-    type: 'request'
-  , node: '12'
-  , data_ID: 'aoeu2'
-  }, 
-  {
-    type: 'request'
-  , node: '1001'
-  , data_ID: 'aoeu3'
-  }, 
-  {
-    type: 'request'
-  , node: '1032'
-  , data_ID: 'aoeu4'
-  }
-]
+force
+  .nodes(net.nodes)
+  .links(net.edges)
+  .start()
+  
+force.on('tick', tick)
 
-function redraw() {
-  var force = d3.layout.force()
-      .charge(-200)
-      .linkDistance(100)
-      .size([width, height]);
+function tick() {
+  edges.attr('x1', function(d) { return d.source.x })
+      .attr('y1', function(d) { return d.source.y })
+      .attr('x2', function(d) { return d.target.x })
+      .attr('y2', function(d) { return d.target.y })
 
-  force
-    .nodes(topology.nodes)
-    .links(topology.edges)
-    .start()
-
-  console.log(topology.nodes.filter(function (node) {
-    return Object.keys(node.requests).length > 0
-  }))
-  console.log('redrawing ,,,.')
-  var nw = network.draw(topology.nodes, topology.edges)(canvas) 
-  nw.edges.call(force.drag)
-  nw.nodes.call(force.drag)
-  force.on('tick', function() {
-    nw.edges.attr('x1', function(d) { return d.source.x })
-        .attr('y1', function(d) { return d.source.y })
-        .attr('x2', function(d) { return d.target.x })
-        .attr('y2', function(d) { return d.target.y })
-    nw.edges.attr('x1', function(d) { return d.source.x })
-        .attr('y1', function(d) { return d.source.y })
-        .attr('x2', function(d) { return d.target.x })
-        .attr('y2', function(d) { return d.target.y })
-
-    nw.nodes.attr('cx', function(d) { return d.x })
-        .attr('cy', function(d) { return d.y })
-
-  })
+  nodes.attr('cx', function(d) { return d.x })
+      .attr('cy', function(d) { return d.y })
 }
 
-animate(topology, events, 100, redraw)
-
-},{"../fixtures/topology.json":2,"../src/animate.js":4,"../src/network.js":6,"d3":3}],2:[function(require,module,exports){
+},{"../fixtures/topology.json":2,"../src/animate.js":4,"../src/network.js":6,"../src/topology.js":8,"d3":3}],2:[function(require,module,exports){
 module.exports={
   "edges": [
     {
@@ -10448,6 +10440,57 @@ function draw(data) {
       return (4*Object.keys(d.requests).length)+3
     })
     .style('fill', 'red')
+}
+
+},{}],8:[function(require,module,exports){
+module.exports = topology
+
+function topology (nodes, edges) {
+  var t = {}
+  
+  t.edges = edges
+  t.nodes = nodes.map(function (node) {
+    node.requests = []
+    return node
+  })
+  
+  t.update = function update(ev) {
+
+    switch (ev.type) {
+      case 'request':
+        var node = get_node(ev.node, t.nodes)
+        if (!node) return
+        node.requests.push({
+          id: ev.data_ID
+        , loc: ev.node
+        })
+        
+        break
+      case 'request_hop':
+        var src = get_node(ev.from_node, t.nodes)
+        if (!src) return
+        src.requests = src.requests.filter(function (r) {
+          return r.id !== ev.data_ID
+        })
+        
+        var dst = get_node(ev.to_node, t.nodes)
+        if (!dst) return
+        dst.requests.push({
+          id: ev.data_ID
+        , loc: ev.to_node
+        })
+        
+        break
+    }
+  }
+  
+  return t
+}
+
+function get_node(id, nodes) {
+  return nodes.filter(function (node) {
+    return node.name === id 
+  })[0]
 }
 
 },{}]},{},[1]);
