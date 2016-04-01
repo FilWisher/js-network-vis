@@ -3,3 +3,4 @@
 - expose animation configuration in update
 - create time line to go through?
 - create slide-show
+- add support for responses and caches
