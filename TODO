@@ -1,5 +1,5 @@
-- create a network using topology.json and test it
-  - use node.js and edges.js to modularize it
-  - test these
-- phantom for visual tests?
-- copy over from main.js
+- parameterize animation to take events, nodes, and edges
+- expose update to api
+- expose animation configuration in update
+- create time line to go through?
+- create slide-show

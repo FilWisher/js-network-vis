@@ -51,7 +51,7 @@ test('topology#update -> request_hop', (t) => {
   , to_node: data.nodes[1].name 
   , from_node: data.nodes[0].name 
   })
-  
+  console.log(network.nodes)  
   var src = network.nodes.filter(n => n.name == data.nodes[0].name)[0]
   var dst = network.nodes.filter(n => n.name == data.nodes[1].name)[0]
   t.ok(src, 'src exists')

@@ -1,13 +1,11 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 var animate = require('../src/animate.js')
-var network = require('../src/network.js')
-var data = require('../fixtures/topology.json')
+var data = require('../fixtures/topology_small.json')
 var topology = require('../src/topology.js')
 var d3 = require('d3')
 
 function node_color(node) {
   if (node.requests.length > 0) {
-    console.log(node)
     return 'blue'
   } else {
     return 'red'
@@ -16,18 +14,13 @@ function node_color(node) {
 
 function node_size(node) {
   if (node.requests.length > 0)
-    return '10'
+    return '15'
   else
-    return '5'
+    return '10'
 }
 
 var net = topology(data.nodes, data.edges)
 var id = Math.floor(Math.random()*100)
-net.update({
-  type: 'request'
-, data_ID: id
-, node: net.nodes[0].name 
-})
 
 var width = 900
 var height = 500
@@ -35,28 +28,42 @@ var height = 500
 var canvas = d3.select('body').append('svg')
   .attr('width', width)
   .attr('height', height)
+  
+canvas.append('text').attr('class', 'next')
+  .attr('x', 200)
+  .attr('y', 200)
+  .text('next')
+  .style('font-style', 'courier')
+  .style('font-size', '45px')
+  .on('click', update)
+  .on('mouseover', function () {
+    d3.select(this).style('fill', '#111')
+  })
+  .on('mouseout', function () {
+    d3.select(this).style('fill', '#000')
+  })
 
 var force = d3.layout.force()
     .charge(-200)
     .linkDistance(100)
     .size([width, height])
     
-var nodes = canvas.selectAll('.node')
-  .data(net.nodes)
-  .enter()
-  .append('circle')
-  .attr('class', 'node')
-  .attr('id', function (d) { return 'i' + d.name })
-  .attr('r', '5')
-  .style('fill', node_color)
-  .call(force.drag)
-
 var edges = canvas.selectAll('.edge')
   .data(net.edges)
   .enter()
   .append('line')
   .attr('class', 'edge')
   .style('stroke-width', '2px')
+  .call(force.drag)
+  
+var nodes = canvas.selectAll('.node')
+  .data(net.nodes)
+  .enter()
+  .append('circle')
+  .attr('class', 'node')
+  .attr('id', function (d) { return 'i' + d.name })
+  .attr('r', node_size)
+  .style('fill', node_color)
   .call(force.drag)
 
 force
@@ -76,648 +83,159 @@ function tick() {
       .attr('cy', function(d) { return d.y })
 }
 
-},{"../fixtures/topology.json":2,"../src/animate.js":4,"../src/network.js":6,"../src/topology.js":8,"d3":3}],2:[function(require,module,exports){
+function update_network(ev) {
+
+  /* update data */
+  net.update(ev)
+ 
+  /* update screen */ 
+  rerender()
+}
+
+function rerender() {
+  
+  force
+    .nodes(net.nodes)
+    .charge(-200)
+    .links(net.edges)
+    .start()
+    
+  nodes = canvas.selectAll('circle.node')
+    .data(net.nodes, function (d) { return d.name })
+    .style('fill', node_color)
+    
+  nodes
+    .transition()
+    .duration(100)
+    .attr('r', node_size)
+ 
+  nodes.exit().remove() 
+}
+
+var evs = [
+  {
+    type: 'request'
+  , data_ID: id
+  , node: net.nodes[0].name 
+  }
+  ,{
+    type: 'request_hop'
+  , data_ID: id
+  , to_node: data.nodes[1].name 
+  , from_node: data.nodes[0].name 
+  },
+  ,{
+    type: 'request_hop'
+  , data_ID: id
+  , to_node: data.nodes[2].name 
+  , from_node: data.nodes[1].name 
+  }
+].reverse()
+
+function update () {
+  var ev = evs.pop()
+  if (!ev) return
+  update_network(ev)
+}
+
+},{"../fixtures/topology_small.json":2,"../src/animate.js":4,"../src/topology.js":5,"d3":3}],2:[function(require,module,exports){
 module.exports={
   "edges": [
     {
-      "source": 13, 
-      "target": 12, 
+      "source": 1, 
+      "target": 2, 
       "value": 1
     }, 
     {
-      "source": 13, 
-      "target": 30, 
-      "value": 1
-    }, 
-    {
-      "source": 13, 
-      "target": 17, 
-      "value": 1
-    }, 
-    {
-      "source": 13, 
-      "target": 46, 
-      "value": 1
-    }, 
-    {
-      "source": 13, 
-      "target": 42, 
-      "value": 1
-    }, 
-    {
-      "source": 12, 
-      "target": 47, 
-      "value": 1
-    }, 
-    {
-      "source": 12, 
-      "target": 51, 
-      "value": 1
-    }, 
-    {
-      "source": 30, 
-      "target": 48, 
-      "value": 1
-    }, 
-    {
-      "source": 30, 
-      "target": 45, 
-      "value": 1
-    }, 
-    {
-      "source": 30, 
-      "target": 17, 
-      "value": 1
-    }, 
-    {
-      "source": 30, 
-      "target": 28, 
-      "value": 1
-    }, 
-    {
-      "source": 30, 
-      "target": 44, 
-      "value": 1
-    }, 
-    {
-      "source": 30, 
-      "target": 41, 
-      "value": 1
-    }, 
-    {
-      "source": 25, 
+      "source": 2, 
       "target": 0, 
       "value": 1
     }, 
     {
-      "source": 25, 
-      "target": 39, 
-      "value": 1
-    }, 
-    {
-      "source": 25, 
-      "target": 17, 
-      "value": 1
-    }, 
-    {
-      "source": 25, 
-      "target": 16, 
-      "value": 1
-    }, 
-    {
-      "source": 25, 
-      "target": 42, 
-      "value": 1
-    }, 
-    {
-      "source": 17, 
-      "target": 16, 
-      "value": 1
-    }, 
-    {
-      "source": 17, 
-      "target": 19, 
-      "value": 1
-    }, 
-    {
-      "source": 17, 
-      "target": 29, 
-      "value": 1
-    }, 
-    {
-      "source": 17, 
-      "target": 38, 
-      "value": 1
-    }, 
-    {
-      "source": 17, 
-      "target": 37, 
-      "value": 1
-    }, 
-    {
-      "source": 17, 
-      "target": 11, 
-      "value": 1
-    }, 
-    {
-      "source": 17, 
-      "target": 41, 
-      "value": 1
-    }, 
-    {
-      "source": 16, 
-      "target": 9, 
-      "value": 1
-    }, 
-    {
-      "source": 19, 
-      "target": 49, 
-      "value": 1
-    }, 
-    {
-      "source": 19, 
-      "target": 18, 
-      "value": 1
-    }, 
-    {
-      "source": 18, 
-      "target": 29, 
-      "value": 1
-    }, 
-    {
-      "source": 18, 
-      "target": 3, 
-      "value": 1
-    }, 
-    {
-      "source": 18, 
-      "target": 46, 
-      "value": 1
-    }, 
-    {
-      "source": 29, 
-      "target": 27, 
-      "value": 1
-    }, 
-    {
-      "source": 29, 
-      "target": 3, 
-      "value": 1
-    }, 
-    {
-      "source": 27, 
-      "target": 3, 
-      "value": 1
-    }, 
-    {
-      "source": 27, 
-      "target": 40, 
-      "value": 1
-    }, 
-    {
-      "source": 27, 
-      "target": 11, 
-      "value": 1
-    }, 
-    {
-      "source": 27, 
-      "target": 35, 
-      "value": 1
-    }, 
-    {
-      "source": 31, 
-      "target": 26, 
-      "value": 1
-    }, 
-    {
-      "source": 50, 
-      "target": 36, 
-      "value": 1
-    }, 
-    {
-      "source": 50, 
-      "target": 6, 
-      "value": 1
-    }, 
-    {
-      "source": 50, 
-      "target": 26, 
-      "value": 1
-    }, 
-    {
-      "source": 50, 
-      "target": 8, 
-      "value": 1
-    }, 
-    {
-      "source": 50, 
-      "target": 35, 
-      "value": 1
-    }, 
-    {
-      "source": 26, 
-      "target": 36, 
-      "value": 1
-    }, 
-    {
-      "source": 26, 
-      "target": 8, 
-      "value": 1
-    }, 
-    {
-      "source": 36, 
-      "target": 20, 
-      "value": 1
-    }, 
-    {
-      "source": 35, 
-      "target": 11, 
-      "value": 1
-    }, 
-    {
-      "source": 38, 
-      "target": 22, 
-      "value": 1
-    }, 
-    {
-      "source": 38, 
-      "target": 46, 
-      "value": 1
-    }, 
-    {
-      "source": 37, 
-      "target": 23, 
-      "value": 1
-    }, 
-    {
-      "source": 37, 
-      "target": 42, 
+      "source": 0, 
+      "target": 7, 
       "value": 1
     }, 
     {
       "source": 7, 
-      "target": 5, 
+      "target": 6, 
       "value": 1
     }, 
     {
-      "source": 8, 
-      "target": 4, 
-      "value": 1
-    }, 
-    {
-      "source": 8, 
-      "target": 5, 
-      "value": 1
-    }, 
-    {
-      "source": 8, 
-      "target": 9, 
-      "value": 1
-    }, 
-    {
-      "source": 9, 
-      "target": 11, 
+      "source": 3, 
+      "target": 6, 
       "value": 1
     }, 
     {
       "source": 2, 
-      "target": 32, 
+      "target": 7, 
       "value": 1
     }, 
     {
       "source": 2, 
-      "target": 3, 
-      "value": 1
-    }, 
-    {
-      "source": 2, 
-      "target": 46, 
-      "value": 1
-    }, 
-    {
-      "source": 5, 
-      "target": 10, 
-      "value": 1
-    }, 
-    {
-      "source": 10, 
       "target": 1, 
       "value": 1
     }, 
     {
-      "source": 10, 
-      "target": 11, 
+      "source": 4, 
+      "target": 7, 
       "value": 1
-    }, 
+    },
     {
-      "source": 42, 
-      "target": 33, 
+      "source": 5, 
+      "target": 7, 
       "value": 1
-    }, 
+    },
     {
-      "source": 41, 
-      "target": 34, 
-      "value": 1
-    }, 
-    {
-      "source": 48, 
-      "target": 52, 
-      "value": 1
-    }, 
-    {
-      "source": 48, 
-      "target": 46, 
-      "value": 1
-    }, 
-    {
-      "source": 47, 
-      "target": 46, 
-      "value": 1
-    }, 
-    {
-      "source": 47, 
-      "target": 21, 
-      "value": 1
-    }, 
-    {
-      "source": 45, 
-      "target": 24, 
-      "value": 1
-    }, 
-    {
-      "source": 45, 
-      "target": 44, 
-      "value": 1
-    }, 
-    {
-      "source": 44, 
-      "target": 43, 
-      "value": 1
-    }, 
-    {
-      "source": 28, 
-      "target": 14, 
-      "value": 1
-    }, 
-    {
-      "source": 28, 
-      "target": 33, 
-      "value": 1
-    }, 
-    {
-      "source": 33, 
-      "target": 15, 
+      "source": 5, 
+      "target": 4, 
       "value": 1
     }
   ], 
   "nodes": [
     {
       "group": 0, 
-      "name": "10", 
+      "name": "0", 
       "type": "receiver"
     }, 
     {
       "group": 1, 
-      "name": "1028", 
+      "name": "1", 
       "type": "source"
     }, 
     {
       "group": 2, 
-      "name": "24", 
-      "type": "router"
-    }, 
-    {
-      "group": 3, 
-      "name": "25", 
-      "type": "router"
-    }, 
-    {
-      "group": 4, 
-      "name": "26", 
-      "type": "receiver"
-    }, 
-    {
-      "group": 5, 
-      "name": "27", 
-      "type": "router"
-    }, 
-    {
-      "group": 6, 
-      "name": "20", 
-      "type": "receiver"
-    }, 
-    {
-      "group": 7, 
-      "name": "21", 
-      "type": "receiver"
-    }, 
-    {
-      "group": 8, 
-      "name": "22", 
-      "type": "router"
-    }, 
-    {
-      "group": 9, 
-      "name": "23", 
-      "type": "router"
-    }, 
-    {
-      "group": 10, 
-      "name": "28", 
-      "type": "router"
-    }, 
-    {
-      "group": 11, 
-      "name": "29", 
-      "type": "router"
-    }, 
-    {
-      "group": 12, 
-      "name": "1", 
-      "type": "router"
-    }, 
-    {
-      "group": 13, 
-      "name": "0", 
-      "type": "router"
-    }, 
-    {
-      "group": 14, 
-      "name": "1038", 
-      "type": "source"
-    }, 
-    {
-      "group": 15, 
-      "name": "1039", 
-      "type": "source"
-    }, 
-    {
-      "group": 16, 
-      "name": "5", 
-      "type": "router"
-    }, 
-    {
-      "group": 17, 
-      "name": "4", 
-      "type": "router"
-    }, 
-    {
-      "group": 18, 
-      "name": "7", 
-      "type": "router"
-    }, 
-    {
-      "group": 19, 
-      "name": "6", 
-      "type": "router"
-    }, 
-    {
-      "group": 20, 
-      "name": "1014", 
-      "type": "source"
-    }, 
-    {
-      "group": 21, 
-      "name": "1033", 
-      "type": "source"
-    }, 
-    {
-      "group": 22, 
-      "name": "1016", 
-      "type": "source"
-    }, 
-    {
-      "group": 23, 
-      "name": "1017", 
-      "type": "source"
-    }, 
-    {
-      "group": 24, 
-      "name": "1035", 
-      "type": "source"
-    }, 
-    {
-      "group": 25, 
-      "name": "3", 
-      "type": "router"
-    }, 
-    {
-      "group": 26, 
-      "name": "13", 
-      "type": "router"
-    }, 
-    {
-      "group": 27, 
-      "name": "9", 
-      "type": "router"
-    }, 
-    {
-      "group": 28, 
-      "name": "38", 
-      "type": "router"
-    }, 
-    {
-      "group": 29, 
-      "name": "8", 
-      "type": "router"
-    }, 
-    {
-      "group": 30, 
       "name": "2", 
       "type": "router"
     }, 
     {
-      "group": 31, 
-      "name": "11", 
+      "group": 3, 
+      "name": "3", 
+      "type": "router"
+    }, 
+    {
+      "group": 4, 
+      "name": "4", 
       "type": "receiver"
     }, 
     {
-      "group": 32, 
-      "name": "1024", 
-      "type": "source"
-    }, 
-    {
-      "group": 33, 
-      "name": "39", 
+      "group": 5, 
+      "name": "5", 
       "type": "router"
     }, 
     {
-      "group": 34, 
-      "name": "1031", 
-      "type": "source"
-    }, 
-    {
-      "group": 35, 
-      "name": "15", 
-      "type": "router"
-    }, 
-    {
-      "group": 36, 
-      "name": "14", 
-      "type": "router"
-    }, 
-    {
-      "group": 37, 
-      "name": "17", 
-      "type": "router"
-    }, 
-    {
-      "group": 38, 
-      "name": "16", 
-      "type": "router"
-    }, 
-    {
-      "group": 39, 
-      "name": "19", 
+      "group": 6, 
+      "name": "6", 
       "type": "receiver"
     }, 
     {
-      "group": 40, 
-      "name": "18", 
+      "group": 7, 
+      "name": "7", 
       "type": "receiver"
-    }, 
-    {
-      "group": 41, 
-      "name": "31", 
-      "type": "router"
-    }, 
-    {
-      "group": 42, 
-      "name": "30", 
-      "type": "router"
-    }, 
-    {
-      "group": 43, 
-      "name": "37", 
-      "type": "receiver"
-    }, 
-    {
-      "group": 44, 
-      "name": "36", 
-      "type": "router"
-    }, 
-    {
-      "group": 45, 
-      "name": "35", 
-      "type": "router"
-    }, 
-    {
-      "group": 46, 
-      "name": "34", 
-      "type": "router"
-    }, 
-    {
-      "group": 47, 
-      "name": "33", 
-      "type": "router"
-    }, 
-    {
-      "group": 48, 
-      "name": "32", 
-      "type": "router"
-    }, 
-    {
-      "group": 49, 
-      "name": "1006", 
-      "type": "source"
-    }, 
-    {
-      "group": 50, 
-      "name": "12", 
-      "type": "router"
-    }, 
-    {
-      "group": 51, 
-      "name": "1001", 
-      "type": "source"
-    }, 
-    {
-      "group": 52, 
-      "name": "1032", 
-      "type": "source"
     }
   ]
 }
+
 },{}],3:[function(require,module,exports){
 !function() {
   var d3 = {
@@ -10372,77 +9890,6 @@ function request_hop(nodes, ev) {
 }
 
 },{}],5:[function(require,module,exports){
-module.exports = {
-  draw: draw
-}
-
-function draw (data) {
-
-  if (!data) {
-    console.log('links#draw: no data provided')
-    return undefined
-  } 
-
-  return data
-    .append('line')
-    .attr('class', 'edge')
-    .style('stroke-width', '2px')
-}
-
-},{}],6:[function(require,module,exports){
-var nodes = require('./nodes.js')
-var edges = require('./edges.js')
-
-var draw = function draw (ns, es) {
-
-  return function (el) {
-  
-    if (!ns || !es) {
-      console.log('network#draw: no data provided')
-      return undefined
-    } 
-    
-    var node_collection = nodes.draw(el.selectAll('.node')
-      .data(ns)
-      .enter())
-     
-    var edge_collection = edges.draw(el.selectAll('.edge')
-      .data(es)
-      .enter())
-    
-    return {
-      nodes: node_collection
-    , edges: edge_collection
-    }
-  }
-}
-
-module.exports = {
-  draw: draw
-}
-
-},{"./edges.js":5,"./nodes.js":7}],7:[function(require,module,exports){
-module.exports = {
-  draw: draw
-}
-
-function draw(data) {
- 
-  if (!data) {
-    console.log('nodes.draw: no data provided')
-    return undefined
-  }
- 
-  return data
-    .append('circle')
-    .attr('class', 'node')
-    .attr('r', function (d) {
-      return (4*Object.keys(d.requests).length)+3
-    })
-    .style('fill', 'red')
-}
-
-},{}],8:[function(require,module,exports){
 module.exports = topology
 
 function topology (nodes, edges) {
@@ -10469,6 +9916,7 @@ function topology (nodes, edges) {
       case 'request_hop':
         var src = get_node(ev.from_node, t.nodes)
         if (!src) return
+       
         src.requests = src.requests.filter(function (r) {
           return r.id !== ev.data_ID
         })

@@ -24,6 +24,7 @@ function topology (nodes, edges) {
       case 'request_hop':
         var src = get_node(ev.from_node, t.nodes)
         if (!src) return
+       
         src.requests = src.requests.filter(function (r) {
           return r.id !== ev.data_ID
         })
