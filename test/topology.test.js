@@ -66,3 +66,49 @@ test('topology#update -> request_hop', (t) => {
   
   t.end()
 })
+
+test('faulty requests', t => {
+
+  var network = topology(data.nodes, data.edges)
+  var id = '100000'
+  
+  t.notOk(network.nodes.filter(n => n.name === id)[0], 
+    'node ' + id + ' doesn\'t exist')
+    
+  try {  
+    network.update({
+      type: 'request'
+    , node: id
+    })
+  } catch (e) {
+    t.fail('request event on non-existent node has no effect')   
+  } 
+
+  try {  
+    network.update({
+      type: 'request_hop'
+    , to_node: id2
+    , from_node: id
+    })
+  } catch (e) {
+    t.fail('request_hop event on non-existent node has no effect')   
+  } 
+  
+  id = '1'
+  var id2 = '100002'
+  t.ok(network.nodes.filter(n => n.name === id)[0], 
+    'node ' + id + ' exists')
+  t.notOk(network.nodes.filter(n => n.name === id2)[0], 
+    'node ' + id2 + ' doesn\'t exist')
+  try {  
+    network.update({
+      type: 'request_hop'
+    , to_node: id2
+    , from_node: id
+    })
+  } catch (e) {
+    t.fail('request_hop event on non-existent node has no effect')   
+  } 
+  
+  t.end()
+})
