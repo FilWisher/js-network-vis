@@ -1,6 +1,16 @@
-var animate = require('../src/animate.js')
 var data = require('../fixtures/topology_small.json')
-var topology = require('../src/topology.js')
+var draw = require('../src/network2.js')
+
+var network = draw(data.nodes, data.edges, {
+  node_color: function (node) {
+    return node.requests.length > 0 ? 'blue' : 'red'
+  }
+, node_size: function (node) {
+    return node.requests.length > 0 ? '15' : '10'
+  }
+  
+})
+/*var topology = require('../src/topology.js')
 var d3 = require('d3')
 
 function node_color(node) {
@@ -81,13 +91,12 @@ function tick() {
   nodes.attr('cx', function(d) { return d.x })
       .attr('cy', function(d) { return d.y })
 }
-
 function update_network(ev) {
 
-  /* update data */
+  // update data
   net.update(ev)
  
-  /* update screen */ 
+  // update screen  
   rerender()
 }
 
@@ -111,28 +120,33 @@ function rerender() {
   nodes.exit().remove() 
 }
 
+*/
+
+var id = Math.floor(Math.random()*1000)
 var evs = [
   {
     type: 'request'
   , data_ID: id
-  , node: net.nodes[0].name 
+  , node: network.graph.nodes[0].name 
   }
   ,{
     type: 'request_hop'
   , data_ID: id
-  , to_node: data.nodes[1].name 
-  , from_node: data.nodes[0].name 
+  , to_node: network.graph.nodes[1].name 
+  , from_node: network.graph.nodes[0].name 
   },
   ,{
     type: 'request_hop'
   , data_ID: id
-  , to_node: data.nodes[2].name 
-  , from_node: data.nodes[1].name 
+  , to_node: network.graph.nodes[2].name 
+  , from_node: network.graph.nodes[1].name 
   }
 ].reverse()
 
 function update () {
   var ev = evs.pop()
   if (!ev) return
-  update_network(ev)
+  network.update(ev)
 }
+
+setInterval(update, 2000)

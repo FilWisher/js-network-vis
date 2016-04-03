@@ -1,7 +1,17 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
-var animate = require('../src/animate.js')
 var data = require('../fixtures/topology_small.json')
-var topology = require('../src/topology.js')
+var draw = require('../src/network2.js')
+
+var network = draw(data.nodes, data.edges, {
+  node_color: function (node) {
+    return node.requests.length > 0 ? 'blue' : 'red'
+  }
+, node_size: function (node) {
+    return node.requests.length > 0 ? '15' : '10'
+  }
+  
+})
+/*var topology = require('../src/topology.js')
 var d3 = require('d3')
 
 function node_color(node) {
@@ -82,13 +92,12 @@ function tick() {
   nodes.attr('cx', function(d) { return d.x })
       .attr('cy', function(d) { return d.y })
 }
-
 function update_network(ev) {
 
-  /* update data */
+  // update data
   net.update(ev)
  
-  /* update screen */ 
+  // update screen  
   rerender()
 }
 
@@ -112,33 +121,38 @@ function rerender() {
   nodes.exit().remove() 
 }
 
+*/
+
+var id = Math.floor(Math.random()*1000)
 var evs = [
   {
     type: 'request'
   , data_ID: id
-  , node: net.nodes[0].name 
+  , node: network.graph.nodes[0].name 
   }
   ,{
     type: 'request_hop'
   , data_ID: id
-  , to_node: data.nodes[1].name 
-  , from_node: data.nodes[0].name 
+  , to_node: network.graph.nodes[1].name 
+  , from_node: network.graph.nodes[0].name 
   },
   ,{
     type: 'request_hop'
   , data_ID: id
-  , to_node: data.nodes[2].name 
-  , from_node: data.nodes[1].name 
+  , to_node: network.graph.nodes[2].name 
+  , from_node: network.graph.nodes[1].name 
   }
 ].reverse()
 
 function update () {
   var ev = evs.pop()
   if (!ev) return
-  update_network(ev)
+  network.update(ev)
 }
 
-},{"../fixtures/topology_small.json":2,"../src/animate.js":4,"../src/topology.js":5,"d3":3}],2:[function(require,module,exports){
+setInterval(update, 2000)
+
+},{"../fixtures/topology_small.json":2,"../src/network2.js":4}],2:[function(require,module,exports){
 module.exports={
   "edges": [
     {
@@ -9792,104 +9806,120 @@ module.exports={
   if (typeof define === "function" && define.amd) this.d3 = d3, define(d3); else if (typeof module === "object" && module.exports) module.exports = d3; else this.d3 = d3;
 }();
 },{}],4:[function(require,module,exports){
-// create request
-
-var requests = {}
-
-module.exports = function (network, events, dt, redraw) {
 /*
-  setInterval(function () {
-    update_cache_size(network)
-  }, dt)
-       
-  console.log('network:', network)
-*/
-  return anim(network, events, dt, redraw)
-}
+ * OPTS:
+ * {
+ *  width // canvas width
+ *, height // canvas height
+ *, node_color // color or function to set node color
+ *, node_size // size or function to set node size
+ *, tick // function to call on force tick
+ *, charge // charge for force layout
+ *, linkDistance // linkDistance for force layout
+ * }
+ */
+var d3 = require('d3')
+var topology = require('./topology.js')
 
-function update_cache_size(network, dt) {
-  network.nodes
-    .transition(dt)
-    .attr('r', function (d) {
-      return (Math.random()*10)+5
-    })
-}
+module.exports = function (nodes, edges, opts) {
 
-/*
-event = {
-  type: 'request'
-, from: '<number>'
-, to: '<number>'
-}
-*/
+  var network = {}
+  var color, size
+  
+  network.opts = opts
+  network.graph = topology(nodes, edges)
+  
+  opts = opts || {}
+  opts.width = opts.width || 900
+  opts.height = opts.height || 500
+  opts.element = opts.element || 'body'
+  opts.charge = opts.charge || -200
+  opts.linkDistance = opts.linkDistance || 100
+  
+  var tick = opts.tick || function (edges, nodes) {
+    edges.attr('x1', function(d) { return d.source.x })
+        .attr('y1', function(d) { return d.source.y })
+        .attr('x2', function(d) { return d.target.x })
+        .attr('y2', function(d) { return d.target.y })
 
-function anim(network, evs, dt, redraw) {
-
-  setInterval(function () {
-    ev = evs.pop()
-    if (!ev) return
-    update(network, ev)
-   
-    redraw()
-      
-  }, 1000)
-}
-
-function request_coords(nodes) {
-  var reqs = Object.keys(requests).map(function (k) {
-    return requests[k].loc
-  })
-  return nodes.filter(function (node) {
-    return reqs.indexOf(node.name) > -1
-  }).map(function (node) {
-    console.log(node)
-    return {
-      x: node[0].cx.baseVal.valueAsString
-    , y: node[0].cy.baseVal.valueAsString
+    nodes.attr('cx', function(d) { return d.x })
+        .attr('cy', function(d) { return d.y })
+  }
+  opts.tick = function() {
+    tick(network.edges, network.nodes)
+  }
+  
+  if (typeof opts.node_color !== 'function') {
+    color = opts.node_color || 'red'
+    opts.node_color = function (node) {
+      return color
     }
-  })
-}
-
-function update(network, ev) {
-  switch (ev.type) {
-  case 'request':
-    request(network.nodes, ev)
-    break
-  case 'request_hop':
-    request_hop(network.nodes, ev)
-    break
   }
-}
-
-function get_node(id, nodes) {
-  return nodes.filter(function (node) {
-    return node.name === ev.node
-  })[0]
-}
-
-function request(nodes, ev) {
-  var n = get_node(ev.node, nodes)
-  if (!n) return
-  console.log('n', n)
-  var r = {
-    id: ev.data_ID
-  , loc: ev.node
+  
+  if (typeof opts.node_size !== 'function') {
+    size = opts.node_size || '10'
+    opts.node_size = function (node) {
+      return size
+    }
   }
-  n.requests[ev.data_ID] = r
-}
-
-function request_hop(nodes, ev) {
-  var src = get_node(ev.from_node, nodes)
-  if (!src) return
-  delete src.requests[ev.data_ID]
-  var dst = get_node(ev.to_node, nodes)
-  dst.requests[ev.data_ID] = {
-    id: ev.data_ID
-  , loc: ev.to_node
+  
+  network.canvas = d3.select(opts.element).append('svg')
+    .attr('width', opts.width)
+    .attr('height', opts.height)
+    
+  var force = d3.layout.force()
+    .charge(opts.charge)
+    .linkDistance(opts.linkDistance)
+    .size([opts.width, opts.height])
+    
+  network.edges = network.canvas.selectAll('.edge')
+    .data(network.graph.edges)
+    .enter()
+    .append('line')
+    .attr('class', 'edge')
+    .style('stroke-width', '2px')
+    .call(force.drag)
+    
+  network.nodes = network.canvas.selectAll('.node')
+    .data(network.graph.nodes)
+    .enter()
+    .append('circle')
+    .attr('class', 'node')
+    .attr('id', function (d) { return 'i' + d.name })
+    .attr('r', opts.node_size)
+    .style('fill', opts.node_color)
+    .call(force.drag)
+    
+  force.nodes(network.graph.nodes)
+    .links(network.graph.edges)
+    .start()
+    
+  force.on('tick', opts.tick)
+  
+  network.update = function (ev) {
+    network.graph.update(ev)
+    
+    force.nodes(network.graph.nodes)
+      .charge(opts.charge)
+      .linkDistance(opts.linkDistance)
+      .start()
+      
+    network.nodes = network.canvas.selectAll('circle.node')
+      .data(network.graph.nodes, function (d) { 
+        return d.name
+      })
+      .style('fill',  opts.node_color)
+      
+    network.nodes
+      .transition()
+      .duration(100)
+      .attr('r', opts.node_size)
   }
+    
+  return network
 }
 
-},{}],5:[function(require,module,exports){
+},{"./topology.js":5,"d3":3}],5:[function(require,module,exports){
 module.exports = topology
 
 function topology (nodes, edges) {
