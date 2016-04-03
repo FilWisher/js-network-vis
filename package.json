@@ -5,12 +5,13 @@
   "main": "index.js",
   "scripts": {
     "test": "tape test/test.js",
-    "build": "mkdir -p dist && browserify examples/index.js > examples/bundle.js",
-    "build:w": "mkdir -p dist && watchify examples/index.js -o examples/bundle.js -v",
+    "build": "mkdir -p dist && browserify src/network.js > dist/js-network-vis.js",
+    "e:build": "browserify examples/index.js > examples/bundle.js",
+    "e:build:w": "watchify examples/index.js -o examples/bundle.js -v",
     "cover": "istanbul cover tape test/test.js",
     "serve": "live-server examples/",
-    "build:wb": "npm run build:w &",
-    "dev": "npm run build:wb && npm run serve",
+    "e:build:wb": "npm run e:build:w &",
+    "dev": "npm run e:build:wb && npm run serve",
     "tree": "tree -I 'node_modules|coverage'"
   },
   "author": "FilWisher",

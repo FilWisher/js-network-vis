@@ -2,6 +2,8 @@ var path = require('path')
 var jsdom = require('jsdom')
 var fs = require('fs')
 
+require('./topology.test.js')
+
 jsdom.env({
   html:''
 , features: {QuerySelector: true}
@@ -15,7 +17,10 @@ jsdom.env({
       d.filter(function (f) {
         return /.*\.test\.js/.test(f)
       }).forEach(function (f) {
-        require(path.join(__dirname, f))(window, d3)
+        var t = require(path.join(__dirname, f))
+        if (typeof t === 'function') {
+          t(window, d3)
+        }
       })
     }) 
   }
