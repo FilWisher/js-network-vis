@@ -1,14 +1,7 @@
 # js-network-vis
 Tool for visualizing network simulation
 
-Example available [here](filwisher.github.io/js-network-vis)   
-
-# install
-
-```npm install js-network-vis```   
-
-Use with browserify or use pre-browserified version in dist/
-
+Example available [here](filwisher.github.io/js-network-vis)
 # use
 ```js
 var data = require('./graph_data.json')
@@ -45,6 +38,10 @@ network.update({
 })
 
 ```
+# install
+```npm install js-network-vis```   
+
+Use with browserify or use pre-browserified version in dist/
 
 # api
 
