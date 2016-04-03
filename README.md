@@ -1,2 +1,2 @@
 # js-network-vis
-Tool for simulating and visualizing networks
+Tool for visualizing network simulation
