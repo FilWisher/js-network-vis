@@ -1,4 +1,180 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+var data = require('../fixtures/topology_small.json')
+var draw = require('..')
+
+var network = draw(data.nodes, data.edges, {
+  node_color: function (node) {
+    return node.requests.length > 0 ? 'blue' : 'red'
+  }
+, node_size: function (node) {
+    return node.requests.length > 0 ? '15' : '10'
+  }
+})
+
+function get_node(id, nodes) {
+  return nodes.filter(function (n) {
+    return n.name === id
+  })[0]
+}
+
+// handle request events
+function request (ev, nodes, edges) {
+  var node = get_node(ev.node, nodes)
+  if (!node) return
+  node.requests.push({
+    id: ev.data_ID
+  , loc: ev.node
+  })
+}
+
+// handle request_hop events
+function request_hop (ev, nodes, edges) {
+  var src = get_node(ev.from_node, nodes) 
+  if (!src) return
+ 
+  src.requests = src.requests.filter(function (r) {
+    return r.id !== ev.data_ID
+  })
+  
+  var dst = get_node(ev.to_node, nodes) 
+  if (!dst) return
+  dst.requests.push({
+    id: ev.data_ID
+  , loc: ev.to_node
+  })
+}
+
+network.event('request', request)
+network.event('request_hop', request_hop)
+
+var id = Math.floor(Math.random()*1000)
+var evs = [
+  {
+    type: 'request'
+  , data_ID: id
+  , node: network.graph.nodes[0].name 
+  }
+  ,{
+    type: 'request_hop'
+  , data_ID: id
+  , to_node: network.graph.nodes[1].name 
+  , from_node: network.graph.nodes[0].name 
+  },
+  ,{
+    type: 'request_hop'
+  , data_ID: id
+  , to_node: network.graph.nodes[2].name 
+  , from_node: network.graph.nodes[1].name 
+  }
+].reverse()
+
+function update () {
+  var ev = evs.pop()
+  if (!ev) return
+  network.update(ev)
+}
+
+setInterval(update, 2000)
+
+},{"..":3,"../fixtures/topology_small.json":2}],2:[function(require,module,exports){
+module.exports={
+  "edges": [
+    {
+      "source": 1, 
+      "target": 2, 
+      "value": 1
+    }, 
+    {
+      "source": 2, 
+      "target": 0, 
+      "value": 1
+    }, 
+    {
+      "source": 0, 
+      "target": 7, 
+      "value": 1
+    }, 
+    {
+      "source": 7, 
+      "target": 6, 
+      "value": 1
+    }, 
+    {
+      "source": 3, 
+      "target": 6, 
+      "value": 1
+    }, 
+    {
+      "source": 2, 
+      "target": 7, 
+      "value": 1
+    }, 
+    {
+      "source": 2, 
+      "target": 1, 
+      "value": 1
+    }, 
+    {
+      "source": 4, 
+      "target": 7, 
+      "value": 1
+    },
+    {
+      "source": 5, 
+      "target": 7, 
+      "value": 1
+    },
+    {
+      "source": 5, 
+      "target": 4, 
+      "value": 1
+    }
+  ], 
+  "nodes": [
+    {
+      "group": 0, 
+      "name": "0", 
+      "type": "receiver"
+    }, 
+    {
+      "group": 1, 
+      "name": "1", 
+      "type": "source"
+    }, 
+    {
+      "group": 2, 
+      "name": "2", 
+      "type": "router"
+    }, 
+    {
+      "group": 3, 
+      "name": "3", 
+      "type": "router"
+    }, 
+    {
+      "group": 4, 
+      "name": "4", 
+      "type": "receiver"
+    }, 
+    {
+      "group": 5, 
+      "name": "5", 
+      "type": "router"
+    }, 
+    {
+      "group": 6, 
+      "name": "6", 
+      "type": "receiver"
+    }, 
+    {
+      "group": 7, 
+      "name": "7", 
+      "type": "receiver"
+    }
+  ]
+}
+
+},{}],3:[function(require,module,exports){
 var d3 = require('d3')
 var topology = require('./topology.js')
 
@@ -43,7 +219,11 @@ module.exports = function (nodes, edges, opts) {
       return size
     }
   }
-  
+
+  network.event = function (name, fn) {
+    network.graph.event(name, fn)
+  }
+
   network.canvas = d3.select(opts.element).append('svg')
     .attr('width', opts.width)
     .attr('height', opts.height)
@@ -100,7 +280,7 @@ module.exports = function (nodes, edges, opts) {
   return network
 }
 
-},{"./topology.js":3,"d3":2}],2:[function(require,module,exports){
+},{"./topology.js":5,"d3":4}],4:[function(require,module,exports){
 !function() {
   var d3 = {
     version: "3.5.16"
@@ -9655,20 +9835,33 @@ module.exports = function (nodes, edges, opts) {
   });
   if (typeof define === "function" && define.amd) this.d3 = d3, define(d3); else if (typeof module === "object" && module.exports) module.exports = d3; else this.d3 = d3;
 }();
-},{}],3:[function(require,module,exports){
+},{}],5:[function(require,module,exports){
 module.exports = topology
 
 function topology (nodes, edges) {
   var t = {}
+  var handlers = {} 
   
   t.edges = edges
   t.nodes = nodes.map(function (node) {
     node.requests = []
     return node
   })
-  
+   
   t.update = function update(ev) {
 
+    var h = handlers[ev.type]
+    if (!h) return
+    return h(ev, t.nodes, t.edges)
+  }
+  
+  t.event = function (name, fn) {
+    if (!name || !fn || typeof fn !== 'function') {
+      throw new Error('must register event-type with function')
+    }
+    handlers[name] = fn
+  }
+  /*
     switch (ev.type) {
       case 'request':
         var node = get_node(ev.node, t.nodes)
@@ -9697,14 +9890,8 @@ function topology (nodes, edges) {
         break
     }
   }
-  
+  */
   return t
-}
-
-function get_node(id, nodes) {
-  return nodes.filter(function (node) {
-    return node.name === id 
-  })[0]
 }
 
 },{}]},{},[1]);
