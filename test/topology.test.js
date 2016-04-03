@@ -11,9 +11,51 @@ test('instantiate topology', (t) => {
   t.end()
 })
 
+test('topology#event', t => {
+  
+  var network = topology(data.nodes, data.edges)
+  network.event('request', function (ev, nodes, edges) { 
+    return ev.data_ID
+  })
+  var id = Math.floor(Math.random() * 1000) 
+  t.equals(network.update({
+    type: 'request'
+  , node: data.nodes[0].name
+  , data_ID: id
+  }), id, 'event registered and handled')
+  t.end()
+})
+
+function h_request (ev, nodes, edges) {
+  var node = nodes.filter(n => n.name === ev.node)[0]
+  if (!node) return
+  node.requests.push({
+    id: ev.data_ID
+  , loc: ev.node
+  })
+}
+
+function h_request_hop (ev, nodes, edges) {
+  var src = nodes.filter(n => n.name === ev.from_node)[0]
+  if (!src) return
+ 
+  src.requests = src.requests.filter(function (r) {
+    return r.id !== ev.data_ID
+  })
+  
+  var dst = nodes.filter(n => n.name === ev.to_node)[0]
+  if (!dst) return
+  dst.requests.push({
+    id: ev.data_ID
+  , loc: ev.to_node
+  })
+}
+
 test('topology#update -> request', (t) => {
 
   var network = topology(data.nodes, data.edges)
+  network.event('request', h_request)
+  network.event('request_hop', h_request_hop)
   var id = Math.floor(Math.random()*10)
   network.update({
     type: 'request'
@@ -38,6 +80,8 @@ test('topology#update -> request', (t) => {
 test('topology#update -> request_hop', (t) => {
   
   var network = topology(data.nodes, data.edges)
+  network.event('request', h_request)
+  network.event('request_hop', h_request_hop)
   var id = Math.floor(Math.random()*10)
   network.update({
     type: 'request'
@@ -63,52 +107,6 @@ test('topology#update -> request_hop', (t) => {
   t.ok(r, 'request exists with correct id')
   
   t.equals(r.loc, dst.name, 'request has correct loc')
-  
-  t.end()
-})
-
-test('faulty requests', t => {
-
-  var network = topology(data.nodes, data.edges)
-  var id = '100000'
-  
-  t.notOk(network.nodes.filter(n => n.name === id)[0], 
-    'node ' + id + ' doesn\'t exist')
-    
-  try {  
-    network.update({
-      type: 'request'
-    , node: id
-    })
-  } catch (e) {
-    t.fail('request event on non-existent node has no effect')   
-  } 
-
-  try {  
-    network.update({
-      type: 'request_hop'
-    , to_node: id2
-    , from_node: id
-    })
-  } catch (e) {
-    t.fail('request_hop event on non-existent node has no effect')   
-  } 
-  
-  id = '1'
-  var id2 = '100002'
-  t.ok(network.nodes.filter(n => n.name === id)[0], 
-    'node ' + id + ' exists')
-  t.notOk(network.nodes.filter(n => n.name === id2)[0], 
-    'node ' + id2 + ' doesn\'t exist')
-  try {  
-    network.update({
-      type: 'request_hop'
-    , to_node: id2
-    , from_node: id
-    })
-  } catch (e) {
-    t.fail('request_hop event on non-existent node has no effect')   
-  } 
   
   t.end()
 })

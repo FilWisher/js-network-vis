@@ -42,7 +42,11 @@ module.exports = function (nodes, edges, opts) {
       return size
     }
   }
-  
+
+  network.event = function (name, fn) {
+    network.graph.event(name, fn)
+  }
+
   network.canvas = d3.select(opts.element).append('svg')
     .attr('width', opts.width)
     .attr('height', opts.height)

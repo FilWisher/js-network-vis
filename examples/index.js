@@ -10,6 +10,42 @@ var network = draw(data.nodes, data.edges, {
   }
 })
 
+function get_node(id, nodes) {
+  return nodes.filter(function (n) {
+    return n.name === id
+  })[0]
+}
+
+// handle request events
+function request (ev, nodes, edges) {
+  var node = get_node(ev.node, nodes)
+  if (!node) return
+  node.requests.push({
+    id: ev.data_ID
+  , loc: ev.node
+  })
+}
+
+// handle request_hop events
+function request_hop (ev, nodes, edges) {
+  var src = get_node(ev.from_node, nodes) 
+  if (!src) return
+ 
+  src.requests = src.requests.filter(function (r) {
+    return r.id !== ev.data_ID
+  })
+  
+  var dst = get_node(ev.to_node, nodes) 
+  if (!dst) return
+  dst.requests.push({
+    id: ev.data_ID
+  , loc: ev.to_node
+  })
+}
+
+network.event('request', request)
+network.event('request_hop', request_hop)
+
 var id = Math.floor(Math.random()*1000)
 var evs = [
   {

@@ -20,10 +20,23 @@ var network = draw(data.nodes, data.edges, {
   }  
 })
 
+/* register handlers to determine how graph responds to events */
+network.event('request', function (event, nodes, edges) {
+  var node = nodes.filter(function (n) {
+    return n.name == event.node
+  })[0]
+  if (!node) return
+  node.requests.push({
+    id: ev.id
+  , location: ev.node
+  })
+})
+
 /* updates network with event */
 network.update({
   type: 'request'
 , node: 837
+, id: Math.floor(Math.random() * 1000)
 })
 
 ```
@@ -71,6 +84,7 @@ a network object is returned by draw:
 ```
 {
   update: function(ev) // updates graph according to an event object
+, event: function(name, handler) // adds event handler to network
 , opts: { ... } // reference to opts object passed to draw
 , canvas: d3 svg selection // reference to graph canvas 
 , edges: d3 line selection // reference to graph lines
@@ -78,24 +92,11 @@ a network object is returned by draw:
 }
 ```
 
+## network.event(name, handler)
+adds handler function to network. when network.update is called with an event with the named typed, the handler is fired. handler should have the signature (event, nodes, edges) where nodes, edges are the data objects (*not* the d3 selection objects).
+
 ## network.update(event)
-updates network according to one of the following events:
+calls the handler registered against the type specified by event.type. if none is found, nothing happens.
 
-### request
-creates a request on the specified node
-```js
-{
-  type: 'request'
-, node: node.name
-}
-```
-
-### request\_hop
-moves a request from the from\_node to the to\_node
-```js
-{
-  type: 'request_hop'
-, from_node: node1.name
-, to_node: node2.name
-}
-```
+# license
+MIT
