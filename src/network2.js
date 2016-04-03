@@ -10,6 +10,7 @@
  *, linkDistance // linkDistance for force layout
  * }
  */
+
 var d3 = require('d3')
 var topology = require('./topology.js')
 
