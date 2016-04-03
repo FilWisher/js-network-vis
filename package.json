@@ -1,11 +1,11 @@
 {
-  "name": "nviz",
+  "name": "js-network-vis",
   "version": "0.0.1",
-  "description": "visualization of a network",
+  "description": "visualization tool for network simulations",
   "main": "index.js",
   "scripts": {
     "test": "tape test/test.js",
-    "build": "mkdir -p dist && browserify src/network.js > dist/js-network-vis.js",
+    "build": "mkdir -p dist && browserify index.js > dist/js-network-vis.js",
     "e:build": "browserify examples/index.js > examples/bundle.js",
     "e:build:w": "watchify examples/index.js -o examples/bundle.js -v",
     "cover": "istanbul cover tape test/test.js",

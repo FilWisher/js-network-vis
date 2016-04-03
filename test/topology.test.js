@@ -1,7 +1,6 @@
 const test = require('tape')
-const topology = require('../src/topology.js')
+const topology = require('../topology.js')
 const data = require('../fixtures/topology.json')
-
 
 test('instantiate topology', (t) => {
 

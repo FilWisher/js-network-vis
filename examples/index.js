@@ -1,5 +1,5 @@
 var data = require('../fixtures/topology_small.json')
-var draw = require('../src/network2.js')
+var draw = require('..')
 
 var network = draw(data.nodes, data.edges, {
   node_color: function (node) {

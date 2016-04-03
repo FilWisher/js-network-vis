@@ -1,16 +1,3 @@
-/*
- * OPTS:
- * {
- *  width // canvas width
- *, height // canvas height
- *, node_color // color or function to set node color
- *, node_size // size or function to set node size
- *, tick // function to call on force tick
- *, charge // charge for force layout
- *, linkDistance // linkDistance for force layout
- * }
- */
-
 var d3 = require('d3')
 var topology = require('./topology.js')
 
