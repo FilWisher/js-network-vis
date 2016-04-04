@@ -1,8 +1,8 @@
-const test = require('tape')
+var test = require('tape')
 const topology = require('../topology.js')
 const data = require('../fixtures/topology.json')
 
-test('instantiate topology', (t) => {
+test('instantiate topology', t => {
 
   var network = topology(data.nodes, data.edges)
   t.equals(network.edges.length, data.edges.length, 'passed edges')
@@ -51,7 +51,7 @@ function h_request_hop (ev, nodes, edges) {
   })
 }
 
-test('topology#update -> request', (t) => {
+test('topology#update -> request', t => {
 
   var network = topology(data.nodes, data.edges)
   network.nodes.forEach(n => { n.requests = [] })
@@ -79,7 +79,7 @@ test('topology#update -> request', (t) => {
   t.end()
 })
 
-test('topology#update -> request_hop', (t) => {
+test('topology#update -> request_hop', t => {
   
   var network = topology(data.nodes, data.edges)
   network.nodes.forEach(n => { n.requests = [] })
@@ -97,7 +97,7 @@ test('topology#update -> request_hop', (t) => {
   , to_node: data.nodes[1].name 
   , from_node: data.nodes[0].name 
   })
-  console.log(network.nodes)  
+  
   var src = network.nodes.filter(n => n.name == data.nodes[0].name)[0]
   var dst = network.nodes.filter(n => n.name == data.nodes[1].name)[0]
   t.ok(src, 'src exists')

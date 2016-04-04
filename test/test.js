@@ -1,6 +1,7 @@
 var path = require('path')
 var jsdom = require('jsdom')
 var fs = require('fs')
+var test = require('tape')
 
 require('./topology.test.js')
 
@@ -12,16 +13,18 @@ jsdom.env({
     window.d3 = require('d3').select(window.document)
     d3 = window.d3
     document = window.document
-    
-    fs.readdir(__dirname, function (err, d) {
-      d.filter(function (f) {
-        return /.*\.test\.js/.test(f)
-      }).forEach(function (f) {
-        var t = require(path.join(__dirname, f))
-        if (typeof t === 'function') {
-          t(window, d3)
-        }
-      })
-    }) 
+   
+    test(t => {
+      fs.readdir(__dirname, function (err, d) {
+        d.filter(function (f) {
+          return /.*\.test\.js/.test(f)
+        }).forEach(function (f) {
+          var st = require(path.join(__dirname, f))
+          if (typeof st === 'function') {
+            st(window, d3, t.test)
+          }
+        })
+      }) 
+    })
   }
 })
