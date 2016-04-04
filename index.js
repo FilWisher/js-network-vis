@@ -16,6 +16,10 @@ module.exports = function (nodes, edges, opts) {
   opts.charge = opts.charge || -200
   opts.linkDistance = opts.linkDistance || 100
   
+  if (typeof opts.setup === 'function') {
+    opts.setup(network.graph.nodes, network.graph.edges)
+  }
+  
   var tick = opts.tick || function (edges, nodes) {
     edges.attr('x1', function(d) { return d.source.x })
         .attr('y1', function(d) { return d.source.y })

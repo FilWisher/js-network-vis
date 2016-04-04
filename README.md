@@ -15,7 +15,11 @@ var network = draw(data.nodes, data.edges, {
 , node_color: 'pink'
 , node_size: function (node) {
     return node.requests.length > 0 ? '15' : '10'
-  }  
+  }
+  /* run any setup to the nodes/edges data */
+, setup: function (nodes, edges) {
+    nodes.forEach(function (node) { node.requests = [] })
+  }
 })
 
 /* register handlers to determine how graph responds to events */

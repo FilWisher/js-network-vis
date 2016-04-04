@@ -5,10 +5,7 @@ function topology (nodes, edges) {
   var handlers = {} 
   
   t.edges = edges
-  t.nodes = nodes.map(function (node) {
-    node.requests = []
-    return node
-  })
+  t.nodes = nodes
    
   t.update = function update(ev) {
 

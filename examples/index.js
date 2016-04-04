@@ -8,6 +8,11 @@ var network = draw(data.nodes, data.edges, {
 , node_size: function (node) {
     return node.requests.length > 0 ? '15' : '10'
   }
+, setup: function (nodes, edges) {
+    nodes.forEach(function (n) {
+      n.requests = []
+    })
+  }
 })
 
 function get_node(id, nodes) {

@@ -54,6 +54,8 @@ function h_request_hop (ev, nodes, edges) {
 test('topology#update -> request', (t) => {
 
   var network = topology(data.nodes, data.edges)
+  network.nodes.forEach(n => { n.requests = [] })
+  
   network.event('request', h_request)
   network.event('request_hop', h_request_hop)
   var id = Math.floor(Math.random()*10)
@@ -80,6 +82,7 @@ test('topology#update -> request', (t) => {
 test('topology#update -> request_hop', (t) => {
   
   var network = topology(data.nodes, data.edges)
+  network.nodes.forEach(n => { n.requests = [] })
   network.event('request', h_request)
   network.event('request_hop', h_request_hop)
   var id = Math.floor(Math.random()*10)
