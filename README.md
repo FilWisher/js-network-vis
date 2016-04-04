@@ -1,7 +1,7 @@
 # js-network-vis
 Tool for visualizing network simulation
 
-Example available [here](filwisher.github.io/js-network-vis)
+Example available [here](http://filwisher.github.io/js-network-vis)
 # use
 ```js
 var data = require('./graph_data.json')
