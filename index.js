@@ -1,7 +1,9 @@
 var d3 = require('d3')
 var topology = require('./topology.js')
 
-module.exports = function (nodes, edges, opts) {
+module.exports = draw
+
+function draw (nodes, edges, opts) {
 
   var network = {}
   var color, size
@@ -104,3 +106,5 @@ module.exports = function (nodes, edges, opts) {
     
   return network
 }
+
+draw.topology = topology

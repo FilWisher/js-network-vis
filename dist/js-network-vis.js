@@ -2,7 +2,9 @@
 var d3 = require('d3')
 var topology = require('./topology.js')
 
-module.exports = function (nodes, edges, opts) {
+module.exports = draw
+
+function draw (nodes, edges, opts) {
 
   var network = {}
   var color, size
@@ -16,6 +18,10 @@ module.exports = function (nodes, edges, opts) {
   opts.element = opts.element || 'body'
   opts.charge = opts.charge || -200
   opts.linkDistance = opts.linkDistance || 100
+  
+  if (typeof opts.setup === 'function') {
+    opts.setup(network.graph.nodes, network.graph.edges)
+  }
   
   var tick = opts.tick || function (edges, nodes) {
     edges.attr('x1', function(d) { return d.source.x })
@@ -101,6 +107,8 @@ module.exports = function (nodes, edges, opts) {
     
   return network
 }
+
+draw.topology = topology
 
 },{"./topology.js":3,"d3":2}],2:[function(require,module,exports){
 !function() {
@@ -9665,10 +9673,7 @@ function topology (nodes, edges) {
   var handlers = {} 
   
   t.edges = edges
-  t.nodes = nodes.map(function (node) {
-    node.requests = []
-    return node
-  })
+  t.nodes = nodes
    
   t.update = function update(ev) {
 
