@@ -60,34 +60,23 @@ function draw (nodes, edges, opts) {
     .linkDistance(opts.linkDistance)
     .size([opts.width, opts.height])
 
-  network.edges_enter = network.canvas.selectAll('.edge')
+  network.edges = network.canvas.selectAll('.edge')
     .data(network.graph.edges)
     .enter()
+    .append('line')
+    .attr('class', 'edge')
+    .style('stroke-width', '2px')
+    .call(force.drag)
   
-  if (typeof opts.on_edges_enter === 'function') {
-    opts.on_edges_enter(network.edges_enter, force)
-  } else {
-    network.edges = network.edges_enter
-      .append('line')
-      .attr('class', 'edge')
-      .style('stroke-width', '2px')
-      .call(force.drag)
-  }
-  
-  network.nodes_enter = network.canvas.selectAll('.node')
+  network.nodes = network.canvas.selectAll('.node')
     .data(network.graph.nodes)
     .enter()
-
-  if (typeof opts.on_node_enter === 'function') {
-    opts.on_node_enter(network.nodes_enter, force)
-  } else {
-    network.nodes = network.nodes_enter
-      .append('circle')
-      .attr('class', 'node')
-      .attr('id', function (d) { return 'i' + d.name })
-      .attr('r', opts.node_size)
-      .style('fill', opts.node_color)
-      .call(force.drag)
+    .append('circle')
+    .attr('class', 'node')
+    .attr('id', function (d) { return 'i' + d.name })
+    .attr('r', opts.node_size)
+    .style('fill', opts.node_color)
+    .call(force.drag)
   }
     
   force.nodes(network.graph.nodes)
