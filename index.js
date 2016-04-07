@@ -22,7 +22,7 @@ function draw (nodes, edges, opts) {
     opts.setup(network.graph.nodes, network.graph.edges)
   }
   
-  var tick = opts.tick || function (nodes, nodes) {
+  var tick = opts.tick || function (nodes, edges) {
     edges.attr('x1', function(d) { return d.source.x })
         .attr('y1', function(d) { return d.source.y })
         .attr('x2', function(d) { return d.target.x })
