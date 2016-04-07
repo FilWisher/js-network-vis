@@ -59,7 +59,7 @@ function draw (nodes, edges, opts) {
     .charge(opts.charge)
     .linkDistance(opts.linkDistance)
     .size([opts.width, opts.height])
-    
+
   network.edges = network.canvas.selectAll('.edge')
     .data(network.graph.edges)
     .enter()
@@ -67,7 +67,7 @@ function draw (nodes, edges, opts) {
     .attr('class', 'edge')
     .style('stroke-width', '2px')
     .call(force.drag)
-    
+  
   network.nodes = network.canvas.selectAll('.node')
     .data(network.graph.nodes)
     .enter()
