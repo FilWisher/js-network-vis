@@ -1,6 +1,6 @@
 {
   "name": "js-network-vis",
-  "version": "0.0.8",
+  "version": "0.0.9",
   "description": "visualization tool for network simulations",
   "main": "index.js",
   "scripts": {
