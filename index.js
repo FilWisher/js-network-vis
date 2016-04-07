@@ -77,7 +77,6 @@ function draw (nodes, edges, opts) {
     .attr('r', opts.node_size)
     .style('fill', opts.node_color)
     .call(force.drag)
-  }
     
   force.nodes(network.graph.nodes)
     .links(network.graph.edges)
