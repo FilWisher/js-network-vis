@@ -22,7 +22,7 @@ function draw (nodes, edges, opts) {
     opts.setup(network.graph.nodes, network.graph.edges)
   }
   
-  var tick = opts.tick || function (edges, nodes) {
+  var tick = opts.tick || function (nodes, nodes) {
     edges.attr('x1', function(d) { return d.source.x })
         .attr('y1', function(d) { return d.source.y })
         .attr('x2', function(d) { return d.target.x })
@@ -32,7 +32,7 @@ function draw (nodes, edges, opts) {
         .attr('cy', function(d) { return d.y })
   }
   opts.tick = function() {
-    tick(network.edges, network.nodes)
+    tick(network.nodes, network.edges)
   }
   
   if (typeof opts.node_color !== 'function') {
@@ -102,6 +102,10 @@ function draw (nodes, edges, opts) {
       .transition()
       .duration(100)
       .attr('r', opts.node_size)
+      
+    if (typeof opts.update === 'function') {
+      opts.update(network.nodes, network.edges)
+    }
   }
     
   return network
