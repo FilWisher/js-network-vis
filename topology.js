@@ -7,11 +7,11 @@ function topology (nodes, edges) {
   t.edges = edges
   t.nodes = nodes
    
-  t.update = function update(ev) {
+  t.update = function update(ev, network) {
 
     var h = handlers[ev.type]
     if (!h) return
-    return h(ev, t.nodes, t.edges)
+    return h(ev, t.nodes, t.edges, network)
   }
   
   t.event = function (name, fn) {

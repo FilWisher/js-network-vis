@@ -22,13 +22,17 @@ function get_node(id, nodes) {
 }
 
 // handle request events
-function request (ev, nodes, edges) {
+function request (ev, nodes, edges, network) {
+
   var node = get_node(ev.node, nodes)
   if (!node) return
   node.requests.push({
     id: ev.data_ID
   , loc: ev.node
   })
+
+  find_node(node.name, network.canvas)
+    .style('fill', 'blue')
 }
 
 // handle request_hop events
