@@ -85,26 +85,10 @@ function draw (nodes, edges, opts) {
   force.on('tick', opts.tick)
   
   network.update = function (ev) {
-    network.graph.update(ev)
+    network.graph.update(ev, network)
     
-    force.nodes(network.graph.nodes)
-      .charge(opts.charge)
-      .linkDistance(opts.linkDistance)
-      .start()
-      
-    network.nodes = network.canvas.selectAll('circle.node')
-      .data(network.graph.nodes, function (d) { 
-        return d.name
-      })
-      .style('fill',  opts.node_color)
-      
-    network.nodes
-      .transition()
-      .duration(100)
-      .attr('r', opts.node_size)
-      
     if (typeof opts.update === 'function') {
-      opts.update(network.nodes, network.edges)
+      opts.update(network)
     }
   }
     

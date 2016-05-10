@@ -23,7 +23,7 @@ function draw (nodes, edges, opts) {
     opts.setup(network.graph.nodes, network.graph.edges)
   }
   
-  var tick = opts.tick || function (edges, nodes) {
+  var tick = opts.tick || function (nodes, edges) {
     edges.attr('x1', function(d) { return d.source.x })
         .attr('y1', function(d) { return d.source.y })
         .attr('x2', function(d) { return d.target.x })
@@ -33,7 +33,7 @@ function draw (nodes, edges, opts) {
         .attr('cy', function(d) { return d.y })
   }
   opts.tick = function() {
-    tick(network.edges, network.nodes)
+    tick(network.nodes, network.edges)
   }
   
   if (typeof opts.node_color !== 'function') {
@@ -60,7 +60,7 @@ function draw (nodes, edges, opts) {
     .charge(opts.charge)
     .linkDistance(opts.linkDistance)
     .size([opts.width, opts.height])
-    
+
   network.edges = network.canvas.selectAll('.edge')
     .data(network.graph.edges)
     .enter()
@@ -68,7 +68,7 @@ function draw (nodes, edges, opts) {
     .attr('class', 'edge')
     .style('stroke-width', '2px')
     .call(force.drag)
-    
+  
   network.nodes = network.canvas.selectAll('.node')
     .data(network.graph.nodes)
     .enter()
@@ -86,23 +86,11 @@ function draw (nodes, edges, opts) {
   force.on('tick', opts.tick)
   
   network.update = function (ev) {
-    network.graph.update(ev)
+    network.graph.update(ev, network)
     
-    force.nodes(network.graph.nodes)
-      .charge(opts.charge)
-      .linkDistance(opts.linkDistance)
-      .start()
-      
-    network.nodes = network.canvas.selectAll('circle.node')
-      .data(network.graph.nodes, function (d) { 
-        return d.name
-      })
-      .style('fill',  opts.node_color)
-      
-    network.nodes
-      .transition()
-      .duration(100)
-      .attr('r', opts.node_size)
+    if (typeof opts.update === 'function') {
+      opts.update(network)
+    }
   }
     
   return network
@@ -113,7 +101,7 @@ draw.topology = topology
 },{"./topology.js":3,"d3":2}],2:[function(require,module,exports){
 !function() {
   var d3 = {
-    version: "3.5.16"
+    version: "3.5.17"
   };
   var d3_arraySlice = [].slice, d3_array = function(list) {
     return d3_arraySlice.call(list);
@@ -3638,7 +3626,7 @@ draw.topology = topology
         λ0 = λ, sinφ0 = sinφ, cosφ0 = cosφ, point0 = point;
       }
     }
-    return (polarAngle < -ε || polarAngle < ε && d3_geo_areaRingSum < 0) ^ winding & 1;
+    return (polarAngle < -ε || polarAngle < ε && d3_geo_areaRingSum < -ε) ^ winding & 1;
   }
   function d3_geo_clipCircle(radius) {
     var cr = Math.cos(radius), smallRadius = cr > 0, notHemisphere = abs(cr) > ε, interpolate = d3_geo_circleInterpolate(radius, 6 * d3_radians);
@@ -9675,11 +9663,11 @@ function topology (nodes, edges) {
   t.edges = edges
   t.nodes = nodes
    
-  t.update = function update(ev) {
+  t.update = function update(ev, network) {
 
     var h = handlers[ev.type]
     if (!h) return
-    return h(ev, t.nodes, t.edges)
+    return h(ev, t.nodes, t.edges, network)
   }
   
   t.event = function (name, fn) {
