@@ -62,7 +62,6 @@ function draw (nodes, edges, opts) {
     }))
     
   network.canvas.append('rect')
-    .style('fill', 'none') 
     .attr('class', 'overlay')
     .attr('width', opts.width)
     .attr('height', opts.height)
