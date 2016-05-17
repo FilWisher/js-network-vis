@@ -51,9 +51,22 @@ function draw (nodes, edges, opts) {
 
   network.event = network.graph.event
 
+
+
   network.canvas = d3.select(opts.element).append('svg')
     .attr('width', opts.width)
     .attr('height', opts.height)
+    .append('g')
+    .call(d3.behavior.zoom().scaleExtent([1,8]).on("zoom", function() {
+      network.canvas.attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")");
+    }))
+    
+  network.canvas.append('rect')
+    .style('fill', 'none') 
+    .attr('class', 'overlay')
+    .attr('width', opts.width)
+    .attr('height', opts.height)
+      
     
   var force = d3.layout.force()
     .charge(opts.charge)
